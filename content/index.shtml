@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BitDogLab - Painel de Controle</title>
+    <link rel="stylesheet" href="/css/style.css.gz">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🐕 BitDogLab - Painel de Controle</h1>
+            <p class="subtitle">Placa educacional RP2040 | Uptime: <span id="uptime"><!--#uptime--></span>s</p>
+        </header>
+
+        <div class="main-grid">
+            <!-- Seção de Componentes -->
+            <section class="card components-section">
+                <h2>📋 Componentes do Kit</h2>
+                <table class="components-table">
+                    <thead>
+                        <tr>
+                            <th>Componente</th>
+                            <th>GPIO</th>
+                            <th>Tipo</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>🔴 LED RGB - Vermelho</td>
+                            <td>13</td>
+                            <td>PWM</td>
+                            <td><span id="led-r-status" class="status-badge">-</span></td>
+                        </tr>
+                        <tr>
+                            <td>🟢 LED RGB - Verde</td>
+                            <td>11</td>
+                            <td>PWM</td>
+                            <td><span id="led-g-status" class="status-badge">-</span></td>
+                        </tr>
+                        <tr>
+                            <td>🔵 LED RGB - Azul</td>
+                            <td>12</td>
+                            <td>PWM</td>
+                            <td><span id="led-b-status" class="status-badge">-</span></td>
+                        </tr>
+                        <tr>
+                            <td>🅰️ Botão A</td>
+                            <td>5</td>
+                            <td>Input</td>
+                            <td><span id="btn-a-status" class="status-badge"><!--#btna--></span></td>
+                        </tr>
+                        <tr>
+                            <td>🅱️ Botão B</td>
+                            <td>6</td>
+                            <td>Input</td>
+                            <td><span id="btn-b-status" class="status-badge"><!--#btnb--></span></td>
+                        </tr>
+                        <tr>
+                            <td>🕹️ Joystick X</td>
+                            <td>26 (ADC0)</td>
+                            <td>Analog</td>
+                            <td><span id="joy-x-status" class="status-badge"><!--#joyx--></span></td>
+                        </tr>
+                        <tr>
+                            <td>🕹️ Joystick Y</td>
+                            <td>27 (ADC1)</td>
+                            <td>Analog</td>
+                            <td><span id="joy-y-status" class="status-badge"><!--#joyy--></span></td>
+                        </tr>
+                        <tr>
+                            <td>🔘 Joystick Btn</td>
+                            <td>22</td>
+                            <td>Input</td>
+                            <td><span id="joy-btn-status" class="status-badge"><!--#joybtn--></span></td>
+                        </tr>
+                        <tr>
+                            <td>🔊 Buzzer Esq.</td>
+                            <td>21</td>
+                            <td>PWM</td>
+                            <td><span class="status-badge ready">Pronto</span></td>
+                        </tr>
+                        <tr>
+                            <td>🔊 Buzzer Dir.</td>
+                            <td>10</td>
+                            <td>PWM</td>
+                            <td><span class="status-badge ready">Pronto</span></td>
+                        </tr>
+                        <tr>
+                            <td>📺 OLED SSD1306</td>
+                            <td>14/15 (I2C1)</td>
+                            <td>I2C</td>
+                            <td><span class="status-badge active">Ativo</span></td>
+                        </tr>
+                        <tr>
+                            <td>💡 Matriz LED 5x5</td>
+                            <td>7</td>
+                            <td>WS2812B</td>
+                            <td><span class="status-badge active">Ativo</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Controles de Entrada -->
+            <section class="card controls-section">
+                <h2>🎮 Controles de Entrada</h2>
+                
+                <div class="controls-grid">
+                    <!-- Botões -->
+                    <div class="control-group">
+                        <h3>Botões</h3>
+                        <div class="buttons-display">
+                            <div class="btn-indicator" id="btn-a-indicator">
+                                <span class="btn-label">A</span>
+                                <span class="btn-state" id="btn-a-state">Solto</span>
+                            </div>
+                            <div class="btn-indicator" id="btn-b-indicator">
+                                <span class="btn-label">B</span>
+                                <span class="btn-state" id="btn-b-state">Solto</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Joystick -->
+                    <div class="control-group">
+                        <h3>Joystick</h3>
+                        <div class="joystick-display">
+                            <div class="joystick-visual">
+                                <div class="joystick-base">
+                                    <div class="joystick-stick" id="joystick-stick"></div>
+                                    <div class="joystick-center"></div>
+                                </div>
+                            </div>
+                            <div class="joystick-values">
+                                <div>X: <span id="joy-x-val">2048</span></div>
+                                <div>Y: <span id="joy-y-val">2048</span></div>
+                                <div>Btn: <span id="joy-btn-val">Solto</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Matriz de LEDs -->
+            <section class="card led-matrix-section">
+                <h2>💡 Matriz de LEDs 5x5</h2>
+                <div class="led-matrix-container">
+                    <div class="led-matrix" id="led-matrix">
+                        <!-- LEDs serão gerados pelo JavaScript -->
+                    </div>
+                    <div class="matrix-controls">
+                        <div class="color-picker">
+                            <label>Cor: </label>
+                            <input type="color" id="led-color" value="#ff0000">
+                        </div>
+                        <div class="matrix-buttons">
+                            <button onclick="clearMatrix()">Limpar</button>
+                            <button onclick="fillMatrix()">Preencher</button>
+                            <button onclick="sendMatrix()">Enviar</button>
+                        </div>
+                        <div class="presets">
+                            <button onclick="setPreset('heart')">❤️</button>
+                            <button onclick="setPreset('smile')">😊</button>
+                            <button onclick="setPreset('x')">❌</button>
+                            <button onclick="setPreset('check')">✓</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- OLED Display -->
+            <section class="card oled-section">
+                <h2>📺 Display OLED</h2>
+                <div class="oled-container">
+                    <div class="oled-preview" id="oled-preview">
+                        <div class="oled-line" id="oled-line-0"></div>
+                        <div class="oled-line" id="oled-line-1"></div>
+                        <div class="oled-line" id="oled-line-2"></div>
+                        <div class="oled-line" id="oled-line-3"></div>
+                        <div class="oled-line" id="oled-line-4"></div>
+                        <div class="oled-line" id="oled-line-5"></div>
+                        <div class="oled-line" id="oled-line-6"></div>
+                        <div class="oled-line" id="oled-line-7"></div>
+                    </div>
+                    <div class="oled-input-container">
+                        <input type="text" id="oled-text" placeholder="Digite texto e pressione Enter..." maxlength="16">
+                        <button onclick="sendOledText()">Enviar</button>
+                    </div>
+                    <p class="oled-hint">Pressione Enter para enviar. O texto anterior sobe uma linha.</p>
+                </div>
+            </section>
+
+            <!-- LED RGB Control -->
+            <section class="card rgb-section">
+                <h2>🌈 LED RGB</h2>
+                <div class="rgb-container">
+                    <div class="rgb-preview" id="rgb-preview"></div>
+                    <div class="rgb-sliders">
+                        <div class="slider-group">
+                            <label>R: <span id="r-val">0</span></label>
+                            <input type="range" id="r-slider" min="0" max="255" value="0" oninput="updateRGB()">
+                        </div>
+                        <div class="slider-group">
+                            <label>G: <span id="g-val">0</span></label>
+                            <input type="range" id="g-slider" min="0" max="255" value="0" oninput="updateRGB()">
+                        </div>
+                        <div class="slider-group">
+                            <label>B: <span id="b-val">0</span></label>
+                            <input type="range" id="b-slider" min="0" max="255" value="0" oninput="updateRGB()">
+                        </div>
+                    </div>
+                    <button onclick="sendRGB()">Aplicar</button>
+                </div>
+            </section>
+        </div>
+
+        <footer>
+            <p>BitDogLab - Placa Educacional RP2040 | <a href="/?test">Teste CGI</a></p>
+            <p>Projeto <a href="https://github.com/ArvoreDosSaberes/BitDogLab_HTTPDd_workspace" target="_blank">Árvore dos Saberes</a></p>
+            <p>Autor: <strong>Carlos Delfino</strong> |
+                <a href="https://carlosdelfino.eti.br" target="_blank">Website</a> |
+                <a href="https://github.com/CarlosDelfino" target="_blank">GitHub</a> |
+                <a href="mailto:consultoria@carlosdelfino.eti.br">consultoria@carlosdelfino.eti.br</a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="/js/app.js.gz"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Estado - BitDogLab</title>
+</head>
+<body>
+<span id="btna"><!--#btna--></span>
+<span id="btnb"><!--#btnb--></span>
+<span id="joyx"><!--#joyx--></span>
+<span id="joyy"><!--#joyy--></span>
+<span id="joybtn"><!--#joybtn--></span>
+<span id="uptime"><!--#uptime--></span>
+
+<footer style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #ccc; font-size: 0.8em; color: #666;">
+    <p>Projeto <a href="https://github.com/ArvoreDosSaberes/BitDogLab_HTTPDd_workspace" target="_blank">Árvore dos Saberes</a></p>
+    <p>Autor: <strong>Carlos Delfino</strong> |
+        <a href="https://carlosdelfino.eti.br" target="_blank">Website</a> |
+        <a href="https://github.com/CarlosDelfino" target="_blank">GitHub</a> |
+        <a href="mailto:consultoria@carlosdelfino.eti.br">consultoria@carlosdelfino.eti.br</a>
+    </p>
+</footer>
+</body>
+</html>
