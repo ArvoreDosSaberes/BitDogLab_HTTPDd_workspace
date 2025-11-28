@@ -15,6 +15,11 @@
 #include "hardware/pio.h"
 #include "hardware/clocks.h"
 
+#if FREERTOS_ENABLED
+#include "FreeRTOS.h"
+#include "task.h"
+#endif
+
 #include "neopixel_pio.h"
 
 // Biblioteca gerada pelo arquivo .pio durante compilação.
@@ -89,5 +94,13 @@ void npWrite() {
     pio_sm_put_blocking(np_pio, sm, leds[i].R);
     pio_sm_put_blocking(np_pio, sm, leds[i].B);
   }
+#if FREERTOS_ENABLED // se o FreeRTOS estiver habilitado e estiver dentro de um task usa vTaskDelay
+  if(xTaskGetCurrentTaskHandle() != NULL){
+    vTaskDelay(pdMS_TO_TICKS(100)); // está dentro de uma task - delay em milissegundos
+  }else{
+    busy_wait_ms(100); // está fora de uma task
+  }
+#else
   busy_wait_ms(100); // Espera 100us, sinal de RESET do datasheet.
+#endif
 }
