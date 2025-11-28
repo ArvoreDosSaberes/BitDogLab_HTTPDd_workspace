@@ -9,6 +9,7 @@
  * @license CC BY 4.0 - https://creativecommons.org/licenses/by/4.0/
  */
  
+#include <hardware/timer.h>
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
@@ -88,5 +89,5 @@ void npWrite() {
     pio_sm_put_blocking(np_pio, sm, leds[i].R);
     pio_sm_put_blocking(np_pio, sm, leds[i].B);
   }
-  sleep_us(100); // Espera 100us, sinal de RESET do datasheet.
+  busy_wait_ms(100); // Espera 100us, sinal de RESET do datasheet.
 }
