@@ -72,7 +72,7 @@ target_link_libraries(picow_httpd_background PRIVATE
 
         log_vt100
         oled
-        ws2812
+        bitdog_lab_matrix_led
         )
 
 # Habilita saída USB (stdio via USB) e desabilita UART

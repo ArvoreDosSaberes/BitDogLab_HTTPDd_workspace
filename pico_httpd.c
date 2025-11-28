@@ -23,6 +23,7 @@
 #include "hardware/gpio.h"
 #include "hardware/adc.h"
 #include "hardware/pwm.h"
+#include <hardware/timer.h>
 
 // Define o nível de log em tempo de compilação (3 = todos os níveis ativos)
 #define LOG_LEVEL 3
@@ -78,6 +79,10 @@ static volatile uint16_t joystick_y = 2048;
 static uint8_t rgb_r = 0;
 static uint8_t rgb_g = 0;
 static uint8_t rgb_b = 0;
+
+// Buzzer state
+static uint16_t buzzer_freq = 1000;
+static uint16_t buzzer_duration = 100;
 
 // OLED text lines buffer
 #define OLED_MAX_LINES 8
@@ -154,6 +159,82 @@ static void set_rgb_led(uint8_t r, uint8_t g, uint8_t b) {
     rgb_b = b;
 }
 
+static void init_buzzer(void) {
+    // Initialize both buzzer pins as PWM
+    gpio_set_function(BUZZER_LEFT_PIN, GPIO_FUNC_PWM);
+    gpio_set_function(BUZZER_RIGHT_PIN, GPIO_FUNC_PWM);
+    
+    uint slice_left = pwm_gpio_to_slice_num(BUZZER_LEFT_PIN);
+    uint slice_right = pwm_gpio_to_slice_num(BUZZER_RIGHT_PIN);
+    
+    // Initialize with buzzer off
+    pwm_set_enabled(slice_left, false);
+    pwm_set_enabled(slice_right, false);
+    
+    LOG_DEBUG("Buzzers inicializados (Esq:%d, Dir:%d)", BUZZER_LEFT_PIN, BUZZER_RIGHT_PIN);
+}
+
+// Channel: 0=both, 1=left, 2=right
+static void buzzer_play(uint16_t freq, uint16_t duration_ms, uint8_t channel) {
+    uint slice_left = pwm_gpio_to_slice_num(BUZZER_LEFT_PIN);
+    uint slice_right = pwm_gpio_to_slice_num(BUZZER_RIGHT_PIN);
+    
+    // freq == 0 turns off the buzzer(s)
+    if (freq == 0) {
+        if (channel == 0 || channel == 1) {
+            pwm_set_enabled(slice_left, false);
+            pwm_set_gpio_level(BUZZER_LEFT_PIN, 0);
+        }
+        if (channel == 0 || channel == 2) {
+            pwm_set_enabled(slice_right, false);
+            pwm_set_gpio_level(BUZZER_RIGHT_PIN, 0);
+        }
+        LOG_DEBUG("Buzzer[%d]: OFF", channel);
+        return;
+    }
+    
+    // Configure PWM for desired frequency
+    // PWM clock is 125MHz, we want 50% duty cycle
+    uint32_t clock_freq = 125000000;
+    uint32_t divider = clock_freq / (freq * 4096); // 4096 = max wrap value
+    if (divider < 1) divider = 1;
+    if (divider > 255) divider = 255;
+    
+    uint32_t wrap = clock_freq / (divider * freq) - 1;
+    if (wrap > 65535) wrap = 65535;
+    
+    bool play_left = (channel == 0 || channel == 1);
+    bool play_right = (channel == 0 || channel == 2);
+    
+    if (play_left) {
+        pwm_set_clkdiv(slice_left, (float)divider);
+        pwm_set_wrap(slice_left, wrap);
+        pwm_set_gpio_level(BUZZER_LEFT_PIN, wrap / 2);
+        pwm_set_enabled(slice_left, true);
+    }
+    
+    if (play_right) {
+        pwm_set_clkdiv(slice_right, (float)divider);
+        pwm_set_wrap(slice_right, wrap);
+        pwm_set_gpio_level(BUZZER_RIGHT_PIN, wrap / 2);
+        pwm_set_enabled(slice_right, true);
+    }
+    
+    busy_wait_ms(duration_ms);
+    
+    // Turn off buzzers
+    if (play_left) {
+        pwm_set_enabled(slice_left, false);
+        pwm_set_gpio_level(BUZZER_LEFT_PIN, 0);
+    }
+    if (play_right) {
+        pwm_set_enabled(slice_right, false);
+        pwm_set_gpio_level(BUZZER_RIGHT_PIN, 0);
+    }
+    
+    LOG_DEBUG("Buzzer[%d]: freq=%dHz, dur=%dms", channel, freq, duration_ms);
+}
+
 static void read_inputs(void) {
     // Read buttons (active LOW)
     btn_a_pressed = !gpio_get(BTN_A_PIN);
@@ -200,6 +281,7 @@ static void init_bitdoglab_hardware(void) {
     init_buttons();
     init_adc();
     init_rgb_led();
+    init_buzzer();
     init_bitdoglab_matrix();
     
     // Initialize OLED
@@ -403,6 +485,8 @@ static const char *cgi_handler_oled(int iIndex, int iNumParams, char *pcParam[],
 static const char *cgi_handler_matrix(int iIndex, int iNumParams, char *pcParam[], char *pcValue[]) {
     for (int i = 0; i < iNumParams; i++) {
         if (strcmp(pcParam[i], "data") == 0) {
+            // URL decode first (commas are encoded as %2C)
+            url_decode(pcValue[i]);
             // Parse comma-separated hex colors
             char *data = pcValue[i];
             int led_index = 0;
@@ -427,12 +511,44 @@ static const char *cgi_handler_matrix(int iIndex, int iNumParams, char *pcParam[
     return "/index.shtml";
 }
 
+// CGI handler for Buzzer control
+static const char *cgi_handler_buzzer(int iIndex, int iNumParams, char *pcParam[], char *pcValue[]) {
+    uint16_t freq = 1000;
+    uint16_t duration = 100;
+    uint8_t channel = 0; // 0=both, 1=left, 2=right
+    
+    for (int i = 0; i < iNumParams; i++) {
+        if (strcmp(pcParam[i], "freq") == 0) {
+            freq = (uint16_t)atoi(pcValue[i]);
+        } else if (strcmp(pcParam[i], "dur") == 0) {
+            duration = (uint16_t)atoi(pcValue[i]);
+        } else if (strcmp(pcParam[i], "ch") == 0) {
+            if (strcmp(pcValue[i], "left") == 0) channel = 1;
+            else if (strcmp(pcValue[i], "right") == 0) channel = 2;
+            else channel = 0; // both
+        }
+    }
+    
+    // Limit values for safety
+    if (freq > 10000) freq = 10000;
+    if (freq < 100) freq = 100;
+    if (duration > 2000) duration = 2000;
+    if (duration < 10) duration = 10;
+    
+    buzzer_freq = freq;
+    buzzer_duration = duration;
+    buzzer_play(freq, duration, channel);
+    
+    return "/index.shtml";
+}
+
 static tCGI cgi_handlers[] = {
     { "/", cgi_handler_index },
     { "/index.shtml", cgi_handler_index },
     { "/rgb.cgi", cgi_handler_rgb },
     { "/oled.cgi", cgi_handler_oled },
     { "/matrix.cgi", cgi_handler_matrix },
+    { "/buzzer.cgi", cgi_handler_buzzer },
 };
 
 // Note that the buffer size is limited by LWIP_HTTPD_MAX_TAG_INSERT_LEN, so use LWIP_HTTPD_SSI_MULTIPART to return larger amounts of data
@@ -547,7 +663,8 @@ err_t httpd_post_begin(void *connection, const char *uri, const char *http_reque
         if (memcmp(uri, "/led.cgi", 8) == 0 ||
             memcmp(uri, "/rgb.cgi", 8) == 0 ||
             memcmp(uri, "/oled.cgi", 9) == 0 ||
-            memcmp(uri, "/matrix.cgi", 11) == 0) {
+            memcmp(uri, "/matrix.cgi", 11) == 0 ||
+            memcmp(uri, "/buzzer.cgi", 11) == 0) {
             current_connection = connection;
             snprintf(response_uri, response_uri_len, "/index.shtml");
             *post_auto_wnd = 1;
@@ -631,6 +748,8 @@ err_t httpd_post_receive_data(void *connection, struct pbuf *p) {
         char data_buf[256];
         char *data_val = httpd_param_value(p, "data=", data_buf, sizeof(data_buf));
         if (data_val) {
+            // URL decode first (commas are encoded as %2C)
+            url_decode(data_val);
             // Parse comma-separated hex colors
             int led_index = 0;
             char *token = strtok(data_val, ",");
@@ -647,6 +766,27 @@ err_t httpd_post_receive_data(void *connection, struct pbuf *p) {
             }
             LOG_DEBUG("LED Matrix: %d LEDs updated", led_index);
             npWrite();
+            ret = ERR_OK;
+        }
+        
+        // Handle Buzzer
+        char freq_buf[8], dur_buf[8], ch_buf[8];
+        char *freq_val = httpd_param_value(p, "freq=", freq_buf, sizeof(freq_buf));
+        char *dur_val = httpd_param_value(p, "dur=", dur_buf, sizeof(dur_buf));
+        char *ch_val = httpd_param_value(p, "ch=", ch_buf, sizeof(ch_buf));
+        if (freq_val || dur_val) {
+            uint16_t freq = freq_val ? (uint16_t)atoi(freq_val) : 1000;
+            uint16_t dur = dur_val ? (uint16_t)atoi(dur_val) : 100;
+            uint8_t channel = 0;
+            if (ch_val) {
+                if (strcmp(ch_val, "left") == 0) channel = 1;
+                else if (strcmp(ch_val, "right") == 0) channel = 2;
+            }
+            if (freq > 10000) freq = 10000;
+            if (freq < 100) freq = 100;
+            if (dur > 2000) dur = 2000;
+            if (dur < 10) dur = 10;
+            buzzer_play(freq, dur, channel);
             ret = ERR_OK;
         }
     }
@@ -752,7 +892,7 @@ int main() {
         cyw43_arch_poll();
         cyw43_arch_wait_for_work_until(led_time);
 #else
-        sleep_ms(1000);
+        busy_wait_ms(1000);
         loop_count++;
         // Log periódico a cada 30 segundos para mostrar que está ativo
         if (loop_count % 30 == 0) {

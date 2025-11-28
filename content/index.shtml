@@ -140,6 +140,37 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Buzzer (ocupa 2 colunas) -->
+                    <div class="control-group full-width">
+                        <h3>🔊 Buzzers</h3>
+                        <div class="buzzer-controls">
+                            <div class="buzzer-sliders">
+                                <div class="slider-group">
+                                    <label>Freq: <span id="buzzer-freq-val">1000</span> Hz</label>
+                                    <input type="range" id="buzzer-freq" min="100" max="5000" value="1000" step="50" oninput="updateBuzzerValues()">
+                                </div>
+                                <div class="slider-group">
+                                    <label>Duração: <span id="buzzer-dur-val">100</span> ms</label>
+                                    <input type="range" id="buzzer-dur" min="50" max="1000" value="100" step="50" oninput="updateBuzzerValues()">
+                                </div>
+                            </div>
+                            <div class="buzzer-select">
+                                <label>Canal:</label>
+                                <select id="buzzer-channel">
+                                    <option value="both">Ambos</option>
+                                    <option value="left">Esquerdo (GPIO 21)</option>
+                                    <option value="right">Direito (GPIO 10)</option>
+                                </select>
+                            </div>
+                            <div class="buzzer-buttons">
+                                <button onclick="playBuzzer()" class="buzzer-play-btn">▶ Tocar</button>
+                                <button onclick="playBuzzer(440, 200)" class="buzzer-preset">Lá</button>
+                                <button onclick="playBuzzer(523, 200)" class="buzzer-preset">Dó</button>
+                                <button onclick="playBuzzer(659, 200)" class="buzzer-preset">Mi</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -161,10 +192,30 @@
                             <button onclick="sendMatrix()">Enviar</button>
                         </div>
                         <div class="presets">
-                            <button onclick="setPreset('heart')">❤️</button>
-                            <button onclick="setPreset('smile')">😊</button>
-                            <button onclick="setPreset('x')">❌</button>
-                            <button onclick="setPreset('check')">✓</button>
+                            <span>Símbolos:</span>
+                            <button onclick="setPreset('heart')" title="Coração">❤️</button>
+                            <button onclick="setPreset('smile')" title="Smile">😊</button>
+                            <button onclick="setPreset('x')" title="X">❌</button>
+                            <button onclick="setPreset('check')" title="Check">✓</button>
+                            <button onclick="setPreset('square')" title="Quadrado">◻️</button>
+                            <button onclick="setPreset('diamond')" title="Diamante">◇</button>
+                            <button onclick="setPreset('plus')" title="Cruz">➕</button>
+                        </div>
+                        <div class="presets">
+                            <span>Setas:</span>
+                            <button onclick="setPreset('arrow_up')" title="Cima">⬆️</button>
+                            <button onclick="setPreset('arrow_down')" title="Baixo">⬇️</button>
+                            <button onclick="setPreset('arrow_left')" title="Esquerda">⬅️</button>
+                            <button onclick="setPreset('arrow_right')" title="Direita">➡️</button>
+                        </div>
+                        <div class="presets">
+                            <span>Efeitos:</span>
+                            <button onclick="waveTopBottom()" title="Onda ↓">🌊⬇</button>
+                            <button onclick="waveBottomTop()" title="Onda ↑">🌊⬆</button>
+                            <button onclick="waveLeftRight()" title="Onda →">🌊➡</button>
+                            <button onclick="waveRightLeft()" title="Onda ←">🌊⬅</button>
+                            <button onclick="waveExpand()" title="Expansão">💫</button>
+                            <button onclick="stopAnimation()" title="Parar">⏹️</button>
                         </div>
                     </div>
                 </div>
