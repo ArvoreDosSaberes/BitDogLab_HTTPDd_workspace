@@ -17,6 +17,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "RP2040_HTTPd_painel_BitDogLab/lib/matrix_led_bitdoglab/neopixel_pio.h"
 #include "pico/cyw43_arch.h"
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
@@ -36,7 +37,7 @@
 #include "oled.h"
 
 // WS2812 LED Matrix
-#include "ws2812.h"
+#include "neopixel_pio.h"
 
 void httpd_init(void);
 
@@ -48,8 +49,8 @@ void httpd_init(void);
 #define BTN_A_PIN           5
 #define BTN_B_PIN           6
 
-#define WS2812_PIN          7
-#define WS2812_NUM_LEDS     25
+#define NEOPIXEL_PIN        7
+#define NEOPIXEL_NUM_LEDS   25
 
 #define JOYSTICK_X_PIN      26
 #define JOYSTICK_Y_PIN      27
@@ -83,9 +84,6 @@ static uint8_t rgb_b = 0;
 #define OLED_MAX_CHARS 17
 static char oled_lines[OLED_MAX_LINES][OLED_MAX_CHARS];
 static int oled_current_line = 0;
-
-// LED Matrix colors (RGB format)
-static uint32_t led_matrix[WS2812_NUM_LEDS] = {0};
 
 // ===== Hardware Initialization Functions =====
 
@@ -190,17 +188,11 @@ static void oled_push_line(const char *text) {
     LOG_DEBUG("OLED: %s", text);
 }
 
-static void init_ws2812_matrix(void) {
-    if (ws2812_init(WS2812_PIN, WS2812_NUM_LEDS)) {
-        LOG_DEBUG("Matriz LED WS2812 inicializada (GPIO:%d, LEDs:%d)", WS2812_PIN, WS2812_NUM_LEDS);
-    } else {
-        LOG_WARN("Falha ao inicializar matriz LED WS2812!");
-    }
+static void init_bitdoglab_matrix(void) {
+    npInit(NEOPIXEL_PIN);
+    LOG_DEBUG("Matriz LED BitDogLab inicializada (GPIO:%d, LEDs:%d)", NEOPIXEL_PIN, NEOPIXEL_NUM_LEDS);
 }
 
-static void update_led_matrix(void) {
-    ws2812_send(led_matrix, WS2812_NUM_LEDS);
-}
 
 static void init_bitdoglab_hardware(void) {
     LOG_INFO("Inicializando hardware BitDogLab...");
@@ -208,7 +200,7 @@ static void init_bitdoglab_hardware(void) {
     init_buttons();
     init_adc();
     init_rgb_led();
-    init_ws2812_matrix();
+    init_bitdoglab_matrix();
     
     // Initialize OLED
     oled_init();
@@ -416,16 +408,19 @@ static const char *cgi_handler_matrix(int iIndex, int iNumParams, char *pcParam[
             int led_index = 0;
             char *token = strtok(data, ",");
             
-            while (token != NULL && led_index < WS2812_NUM_LEDS) {
+            while (token != NULL && led_index < NEOPIXEL_NUM_LEDS) {
                 // Convert hex string to uint32
                 uint32_t color = (uint32_t)strtoul(token, NULL, 16);
-                led_matrix[led_index] = color;
+                // Extract RGB components from hex
+                uint8_t r = (color >> 16) & 0xFF;
+                uint8_t g = (color >> 8) & 0xFF;
+                uint8_t b = color & 0xFF;
+                npSetLED(led_index, r, g, b);
                 led_index++;
-                token = strtok(NULL, ",");
+                
             }
-            
             LOG_DEBUG("LED Matrix updated, %d LEDs", led_index);
-            update_led_matrix();
+            npWrite();
             break;
         }
     }
@@ -639,14 +634,19 @@ err_t httpd_post_receive_data(void *connection, struct pbuf *p) {
             // Parse comma-separated hex colors
             int led_index = 0;
             char *token = strtok(data_val, ",");
-            while (token != NULL && led_index < WS2812_NUM_LEDS) {
+            while (token != NULL && led_index < NEOPIXEL_NUM_LEDS) {
                 uint32_t color = (uint32_t)strtoul(token, NULL, 16);
-                led_matrix[led_index] = color;
+
+                uint8_t r = (color >> 16) & 0xFF;
+                uint8_t g = (color >> 8) & 0xFF;
+                uint8_t b = color & 0xFF;
+                npSetLED(led_index, r, g, b);
+
                 led_index++;
                 token = strtok(NULL, ",");
             }
             LOG_DEBUG("LED Matrix: %d LEDs updated", led_index);
-            update_led_matrix();
+            npWrite();
             ret = ERR_OK;
         }
     }
