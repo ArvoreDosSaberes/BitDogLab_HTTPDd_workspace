@@ -14,12 +14,11 @@
 #include "hardware/pio.h"
 #include "hardware/clocks.h"
 
+#include "neopixel_pio.h"
+
 // Biblioteca gerada pelo arquivo .pio durante compilação.
 #include "ws2818b.pio.h"
 
-// Definição do número de LEDs e pino.
-#define LED_COUNT 25
-#define LED_PIN 7
 
 // Definição de pixel GRB
 struct pixel_t {
@@ -90,23 +89,4 @@ void npWrite() {
     pio_sm_put_blocking(np_pio, sm, leds[i].B);
   }
   sleep_us(100); // Espera 100us, sinal de RESET do datasheet.
-}
-
-int main() {
-
-  // Inicializa entradas e saídas.
-  stdio_init_all();
-
-  // Inicializa matriz de LEDs NeoPixel.
-  npInit(LED_PIN);
-  npClear();
-
-  // Aqui, você desenha nos LEDs.
-
-  npWrite(); // Escreve os dados nos LEDs.
-
-  // Não faz mais nada. Loop infinito.
-  while (true) {
-    sleep_ms(1000);
-  }
 }

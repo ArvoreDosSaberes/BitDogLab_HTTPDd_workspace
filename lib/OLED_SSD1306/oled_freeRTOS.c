@@ -1,3 +1,18 @@
+/**
+ * @file    oled_freeRTOS.c
+ * @brief   Implementação de semáforos FreeRTOS para OLED
+ * 
+ * @project BitDogLab_HTTPDd_workspace
+ * @url     https://github.com/ArvoreDosSaberes/BitDogLab_HTTPDd_workspace
+ * 
+ * @author  Carlos Delfino
+ * @email   consultoria@carlosdelfino.eti.br
+ * @website https://carlosdelfino.eti.br
+ * @github  https://github.com/CarlosDelfino
+ * 
+ * @license CC BY 4.0 - https://creativecommons.org/licenses/by/4.0/
+ */
+
 #include "FreeRTOS.h"
 #include "FreeRTOSConfig.h"
 #include "portmacro.h"

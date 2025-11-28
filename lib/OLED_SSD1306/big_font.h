@@ -1,3 +1,18 @@
+/**
+ * @file    big_font.h
+ * @brief   Fonte 16x32 para display OLED SSD1306
+ * 
+ * @project BitDogLab_HTTPDd_workspace
+ * @url     https://github.com/ArvoreDosSaberes/BitDogLab_HTTPDd_workspace
+ * 
+ * @author  Carlos Delfino
+ * @email   consultoria@carlosdelfino.eti.br
+ * @website https://carlosdelfino.eti.br
+ * @github  https://github.com/CarlosDelfino
+ * 
+ * @license CC BY 4.0 - https://creativecommons.org/licenses/by/4.0/
+ */
+
 #ifndef BIG_FONT_H
 #define BIG_FONT_H
 

@@ -1,3 +1,18 @@
+/**
+ * @file    I2C.cpp
+ * @brief   Implementação da interface C++ para I2C do RP2040/RP2350
+ * 
+ * @project BitDogLab_HTTPDd_workspace
+ * @url     https://github.com/ArvoreDosSaberes/BitDogLab_HTTPDd_workspace
+ * 
+ * @author  Carlos Delfino
+ * @email   consultoria@carlosdelfino.eti.br
+ * @website https://carlosdelfino.eti.br
+ * @github  https://github.com/CarlosDelfino
+ * 
+ * @license CC BY 4.0 - https://creativecommons.org/licenses/by/4.0/
+ */
+
 #include "I2C.hpp"
 #include "log_vt100.h"
 #include <cstdint>

@@ -1,14 +1,23 @@
+/**
+ * @file    I2C.hpp
+ * @brief   Interface C++ simples para o periférico I2C do RP2040/RP2350
+ * @details Esta classe funciona como um pequeno wrapper ao redor das funções
+ *          do SDK do Pico, oferecendo uma API semelhante ao Wire/Arduino para
+ *          facilitar exemplos e drivers de sensores.
+ * 
+ * @project BitDogLab_HTTPDd_workspace
+ * @url     https://github.com/ArvoreDosSaberes/BitDogLab_HTTPDd_workspace
+ * 
+ * @author  Carlos Delfino
+ * @email   consultoria@carlosdelfino.eti.br
+ * @website https://carlosdelfino.eti.br
+ * @github  https://github.com/CarlosDelfino
+ * 
+ * @license CC BY 4.0 - https://creativecommons.org/licenses/by/4.0/
+ */
+
 #ifndef I2C_H
 #define I2C_H
-
-/**
- * @file I2C.h
- * @brief Interface C++ simples para o periférico I2C do RP2040/RP2350.
- *
- * Esta classe funciona como um pequeno wrapper ao redor das funções do SDK
- * do Pico, oferecendo uma API semelhante ao Wire/Arduino para facilitar
- * exemplos e drivers de sensores.
- */
 #include "pico/stdlib.h"
 #include "hardware/i2c.h"
 #include <stddef.h>
