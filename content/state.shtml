@@ -11,6 +11,7 @@
 <span id="joyy"><!--#joyy--></span>
 <span id="joybtn"><!--#joybtn--></span>
 <span id="uptime"><!--#uptime--></span>
+<span id="temp"><!--#temp--></span>
 
 <footer style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #ccc; font-size: 0.8em; color: #666;">
     <p>Projeto <a href="https://github.com/ArvoreDosSaberes/BitDogLab_HTTPDd_workspace" target="_blank">Árvore dos Saberes</a></p>

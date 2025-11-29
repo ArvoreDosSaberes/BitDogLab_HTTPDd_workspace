@@ -58,6 +58,7 @@ void httpd_init(void);
 #define JOYSTICK_BTN_PIN    22
 #define JOYSTICK_X_ADC      0
 #define JOYSTICK_Y_ADC      1
+#define TEMP_ADC_CHANNEL    4
 
 #define BUZZER_LEFT_PIN     21
 #define BUZZER_RIGHT_PIN    10
@@ -74,6 +75,9 @@ static volatile bool joy_btn_pressed = false;
 // Joystick ADC values
 static volatile uint16_t joystick_x = 2048;
 static volatile uint16_t joystick_y = 2048;
+
+// Temperature reading
+static volatile float chip_temperature = 0.0f;
 
 // RGB LED values (0-255)
 static uint8_t rgb_r = 0;
@@ -118,7 +122,10 @@ static void init_adc(void) {
     adc_gpio_init(JOYSTICK_X_PIN);
     adc_gpio_init(JOYSTICK_Y_PIN);
     
-    LOG_DEBUG("ADC inicializado (X:%d, Y:%d)", JOYSTICK_X_PIN, JOYSTICK_Y_PIN);
+    // Enable temperature sensor (ADC channel 4)
+    adc_set_temp_sensor_enabled(true);
+    
+    LOG_DEBUG("ADC inicializado (X:%d, Y:%d, Temp:ch4)", JOYSTICK_X_PIN, JOYSTICK_Y_PIN);
 }
 
 static void init_rgb_led(void) {
@@ -247,6 +254,14 @@ static void read_inputs(void) {
     
     adc_select_input(JOYSTICK_Y_ADC);
     joystick_y = adc_read();
+    
+    // Read internal temperature sensor (ADC channel 4)
+    adc_select_input(TEMP_ADC_CHANNEL);
+    uint16_t raw_temp = adc_read();
+    // Convert ADC reading to temperature in Celsius
+    // Formula from RP2040 datasheet: T = 27 - (ADC_voltage - 0.706) / 0.001721
+    float voltage = raw_temp * 3.3f / 4096.0f;
+    chip_temperature = 27.0f - (voltage - 0.706f) / 0.001721f;
 }
 
 static void oled_push_line(const char *text) {
@@ -626,6 +641,10 @@ u16_t ssi_example_ssi_handler(int iIndex, char *pcInsert, int iInsertLen
             printed = snprintf(pcInsert, iInsertLen, "%u", rgb_b);
             break;
         }
+        case 14: { // "temp" - Chip temperature
+            printed = snprintf(pcInsert, iInsertLen, "%.1f", chip_temperature);
+            break;
+        }
         default: { // unknown tag
             printed = 0;
             break;
@@ -650,6 +669,7 @@ static const char *ssi_tags[] = {
     "rgbr",     // 11
     "rgbg",     // 12
     "rgbb",     // 13
+    "temp",     // 14
 };
 
 #if LWIP_HTTPD_SUPPORT_POST

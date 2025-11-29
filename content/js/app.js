@@ -254,6 +254,344 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================
+// RGB Effects - Advanced Color Effects
+// ============================================
+
+// Helper: Convert HSV to RGB
+function hsvToRgb(h, s, v) {
+    let r, g, b;
+    const i = Math.floor(h * 6);
+    const f = h * 6 - i;
+    const p = v * (1 - s);
+    const q = v * (1 - f * s);
+    const t = v * (1 - (1 - f) * s);
+    switch (i % 6) {
+        case 0: r = v; g = t; b = p; break;
+        case 1: r = q; g = v; b = p; break;
+        case 2: r = p; g = v; b = t; break;
+        case 3: r = p; g = q; b = v; break;
+        case 4: r = t; g = p; b = v; break;
+        case 5: r = v; g = p; b = q; break;
+    }
+    return {
+        r: Math.round(r * 255),
+        g: Math.round(g * 255),
+        b: Math.round(b * 255)
+    };
+}
+
+// Helper: RGB to Hex
+function rgbToHexColor(r, g, b) {
+    return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+}
+
+// Effect: Rainbow Wave - Arco-iris percorrendo a matriz
+function effectRainbow() {
+    stopAnimation();
+    let offset = 0;
+    animationInterval = setInterval(() => {
+        for (let i = 0; i < 25; i++) {
+            const row = Math.floor(i / 5);
+            const col = i % 5;
+            const hue = ((col + row + offset) % 10) / 10;
+            const rgb = hsvToRgb(hue, 1, 1);
+            setLedVisual(i, rgbToHexColor(rgb.r, rgb.g, rgb.b));
+        }
+        sendMatrix();
+        offset = (offset + 1) % 10;
+    }, 150);
+}
+
+// Effect: Rainbow Spiral - Espiral arco-iris do centro
+function effectRainbowSpiral() {
+    stopAnimation();
+    const spiral = [12, 7, 11, 17, 13, 8, 6, 16, 18, 2, 1, 5, 10, 15, 20, 21, 22, 23, 19, 14, 9, 4, 3, 0, 24];
+    let offset = 0;
+    animationInterval = setInterval(() => {
+        for (let i = 0; i < 25; i++) {
+            const hue = ((spiral.indexOf(i) + offset) % 25) / 25;
+            const rgb = hsvToRgb(hue, 1, 1);
+            setLedVisual(i, rgbToHexColor(rgb.r, rgb.g, rgb.b));
+        }
+        sendMatrix();
+        offset = (offset + 1) % 25;
+    }, 100);
+}
+
+// Effect: Color Chase - Cores perseguindo
+function effectColorChase() {
+    stopAnimation();
+    const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+    let pos = 0;
+    let colorIdx = 0;
+    animationInterval = setInterval(() => {
+        clearMatrix(true);
+        setLedVisual(pos, colors[colorIdx]);
+        setLedVisual((pos + 1) % 25, colors[(colorIdx + 1) % colors.length]);
+        setLedVisual((pos + 2) % 25, colors[(colorIdx + 2) % colors.length]);
+        sendMatrix();
+        pos = (pos + 1) % 25;
+        if (pos === 0) colorIdx = (colorIdx + 1) % colors.length;
+    }, 80);
+}
+
+// Effect: Breathing - Respiracao com cor selecionada
+function effectBreathing() {
+    stopAnimation();
+    selectedColor = document.getElementById('led-color').value;
+    const baseRgb = hexToRgb(selectedColor);
+    let brightness = 0;
+    let increasing = true;
+    animationInterval = setInterval(() => {
+        const factor = brightness / 100;
+        const r = Math.round(baseRgb.r * factor);
+        const g = Math.round(baseRgb.g * factor);
+        const b = Math.round(baseRgb.b * factor);
+        const color = rgbToHexColor(r, g, b);
+        for (let i = 0; i < 25; i++) {
+            setLedVisual(i, color);
+        }
+        sendMatrix();
+        if (increasing) {
+            brightness += 5;
+            if (brightness >= 100) increasing = false;
+        } else {
+            brightness -= 5;
+            if (brightness <= 0) increasing = true;
+        }
+    }, 50);
+}
+
+// Effect: Fire - Simulacao de fogo
+function effectFire() {
+    stopAnimation();
+    animationInterval = setInterval(() => {
+        for (let i = 0; i < 25; i++) {
+            const row = Math.floor(i / 5);
+            // Mais vermelho no topo, mais amarelo na base
+            const intensity = Math.random() * 0.5 + 0.5;
+            const r = Math.round(255 * intensity);
+            const g = Math.round((50 + (4 - row) * 40) * intensity * Math.random());
+            const b = 0;
+            setLedVisual(i, rgbToHexColor(r, g, b));
+        }
+        sendMatrix();
+    }, 100);
+}
+
+// Effect: Sparkle - Brilhos aleatorios
+function effectSparkle() {
+    stopAnimation();
+    animationInterval = setInterval(() => {
+        clearMatrix(true);
+        // Acende 3-5 LEDs aleatorios com cores aleatorias
+        const numSparkles = 3 + Math.floor(Math.random() * 3);
+        for (let s = 0; s < numSparkles; s++) {
+            const idx = Math.floor(Math.random() * 25);
+            const hue = Math.random();
+            const rgb = hsvToRgb(hue, 1, 1);
+            setLedVisual(idx, rgbToHexColor(rgb.r, rgb.g, rgb.b));
+        }
+        sendMatrix();
+    }, 100);
+}
+
+// Effect: Color Wheel - Roda de cores rotativa
+function effectColorWheel() {
+    stopAnimation();
+    let rotation = 0;
+    animationInterval = setInterval(() => {
+        for (let i = 0; i < 25; i++) {
+            const row = Math.floor(i / 5);
+            const col = i % 5;
+            // Distancia do centro
+            const dx = col - 2;
+            const dy = row - 2;
+            const angle = Math.atan2(dy, dx) / (2 * Math.PI) + 0.5;
+            const hue = (angle + rotation) % 1;
+            const rgb = hsvToRgb(hue, 1, 1);
+            setLedVisual(i, rgbToHexColor(rgb.r, rgb.g, rgb.b));
+        }
+        sendMatrix();
+        rotation = (rotation + 0.05) % 1;
+    }, 100);
+}
+
+// Effect: Gradient - Gradiente diagonal
+function effectGradient() {
+    stopAnimation();
+    let offset = 0;
+    const color1 = hexToRgb(document.getElementById('led-color').value);
+    // Cor complementar
+    const color2 = { r: 255 - color1.r, g: 255 - color1.g, b: 255 - color1.b };
+    animationInterval = setInterval(() => {
+        for (let i = 0; i < 25; i++) {
+            const row = Math.floor(i / 5);
+            const col = i % 5;
+            const t = ((row + col + offset) % 8) / 8;
+            const r = Math.round(color1.r + (color2.r - color1.r) * t);
+            const g = Math.round(color1.g + (color2.g - color1.g) * t);
+            const b = Math.round(color1.b + (color2.b - color1.b) * t);
+            setLedVisual(i, rgbToHexColor(r, g, b));
+        }
+        sendMatrix();
+        offset = (offset + 1) % 8;
+    }, 150);
+}
+
+// Effect: Pulse - Pulso colorido do centro
+function effectPulse() {
+    stopAnimation();
+    let step = 0;
+    const colors = ['#ff0000', '#ff7700', '#ffff00', '#00ff00', '#0077ff', '#8800ff'];
+    animationInterval = setInterval(() => {
+        clearMatrix(true);
+        const ring = step % 3;
+        const colorIdx = Math.floor(step / 3) % colors.length;
+        const rings = [
+            [12],
+            [6, 7, 8, 11, 13, 16, 17, 18],
+            [0, 1, 2, 3, 4, 5, 9, 10, 14, 15, 19, 20, 21, 22, 23, 24]
+        ];
+        rings[ring].forEach(idx => setLedVisual(idx, colors[colorIdx]));
+        sendMatrix();
+        step = (step + 1) % (3 * colors.length);
+    }, 150);
+}
+
+// Effect: Random Colors - Cores aleatorias em toda matriz
+function effectRandomColors() {
+    stopAnimation();
+    animationInterval = setInterval(() => {
+        for (let i = 0; i < 25; i++) {
+            const hue = Math.random();
+            const rgb = hsvToRgb(hue, 1, 1);
+            setLedVisual(i, rgbToHexColor(rgb.r, rgb.g, rgb.b));
+        }
+        sendMatrix();
+    }, 200);
+}
+
+// Effect: Matrix Rain - Chuva estilo Matrix
+function effectMatrixRain() {
+    stopAnimation();
+    const drops = [0, 0, 0, 0, 0];
+    animationInterval = setInterval(() => {
+        clearMatrix(true);
+        for (let col = 0; col < 5; col++) {
+            // Desenha a gota com fade
+            for (let trail = 0; trail < 3; trail++) {
+                const row = (drops[col] - trail + 5) % 5;
+                const idx = row * 5 + col;
+                const brightness = 1 - trail * 0.3;
+                const g = Math.round(255 * brightness);
+                setLedVisual(idx, rgbToHexColor(0, g, 0));
+            }
+            // Move a gota
+            if (Math.random() > 0.3) {
+                drops[col] = (drops[col] + 1) % 5;
+            }
+        }
+        sendMatrix();
+    }, 120);
+}
+
+// Effect: Ocean Waves - Ondas do oceano
+function effectOceanWaves() {
+    stopAnimation();
+    let phase = 0;
+    animationInterval = setInterval(() => {
+        for (let i = 0; i < 25; i++) {
+            const row = Math.floor(i / 5);
+            const col = i % 5;
+            const wave = Math.sin((col + phase) * 0.8) * 0.5 + 0.5;
+            const depth = (4 - row) / 4;
+            const r = 0;
+            const g = Math.round(100 * wave * depth);
+            const b = Math.round(200 + 55 * wave);
+            setLedVisual(i, rgbToHexColor(r, g, b));
+        }
+        sendMatrix();
+        phase += 0.5;
+    }, 100);
+}
+
+// Effect: Lava Lamp - Lampada de lava
+function effectLavaLamp() {
+    stopAnimation();
+    const blobs = [
+        { x: 1, y: 2, hue: 0 },
+        { x: 3, y: 1, hue: 0.3 },
+        { x: 2, y: 3, hue: 0.6 }
+    ];
+    animationInterval = setInterval(() => {
+        clearMatrix(true);
+        blobs.forEach(blob => {
+            // Move blob
+            blob.x += (Math.random() - 0.5) * 0.8;
+            blob.y += (Math.random() - 0.5) * 0.8;
+            blob.x = Math.max(0, Math.min(4, blob.x));
+            blob.y = Math.max(0, Math.min(4, blob.y));
+            blob.hue = (blob.hue + 0.02) % 1;
+            // Draw blob
+            for (let i = 0; i < 25; i++) {
+                const row = Math.floor(i / 5);
+                const col = i % 5;
+                const dist = Math.sqrt(Math.pow(col - blob.x, 2) + Math.pow(row - blob.y, 2));
+                if (dist < 1.8) {
+                    const brightness = 1 - dist / 1.8;
+                    const rgb = hsvToRgb(blob.hue, 1, brightness);
+                    setLedVisual(i, rgbToHexColor(rgb.r, rgb.g, rgb.b));
+                }
+            }
+        });
+        sendMatrix();
+    }, 100);
+}
+
+// Effect: Police Lights - Luzes de policia
+function effectPolice() {
+    stopAnimation();
+    let state = 0;
+    animationInterval = setInterval(() => {
+        clearMatrix(true);
+        if (state < 2) {
+            // Azul na esquerda
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 2; col++) {
+                    setLedVisual(row * 5 + col, '#0000ff');
+                }
+            }
+        } else {
+            // Vermelho na direita
+            for (let row = 0; row < 5; row++) {
+                for (let col = 3; col < 5; col++) {
+                    setLedVisual(row * 5 + col, '#ff0000');
+                }
+            }
+        }
+        sendMatrix();
+        state = (state + 1) % 4;
+    }, 150);
+}
+
+// Effect: Disco - Disco ball
+function effectDisco() {
+    stopAnimation();
+    animationInterval = setInterval(() => {
+        clearMatrix(true);
+        // Acende LEDs aleatorios com cores vivas
+        const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffffff'];
+        for (let i = 0; i < 25; i++) {
+            if (Math.random() > 0.6) {
+                setLedVisual(i, colors[Math.floor(Math.random() * colors.length)]);
+            }
+        }
+        sendMatrix();
+    }, 100);
+}
+
+// ============================================
 // OLED Functions
 // ============================================
 
@@ -407,6 +745,12 @@ function pollState() {
             if (uptime) {
                 document.getElementById('uptime').textContent = uptime;
             }
+            
+            // Update temperature gauge
+            const temp = doc.getElementById('temp')?.textContent;
+            if (temp) {
+                updateTemperatureGauge(parseFloat(temp));
+            }
         })
         .catch(err => {
             // Silent fail for polling
@@ -490,4 +834,56 @@ function rgbToHex(r, g, b) {
         const hex = x.toString(16);
         return hex.length === 1 ? '0' + hex : hex;
     }).join('');
+}
+
+// ============================================
+// Temperature Gauge Functions
+// ============================================
+
+function updateTemperatureGauge(temp) {
+    // Update displayed value
+    const tempValEl = document.getElementById('temp-val');
+    if (tempValEl) {
+        tempValEl.textContent = temp.toFixed(1);
+    }
+    
+    // Clamp temperature to 0-100 range for gauge
+    const clampedTemp = Math.max(0, Math.min(100, temp));
+    
+    // Update gauge needle rotation (-90° to 90°, where -90° is 0°C and 90° is 100°C)
+    const needleAngle = -90 + (clampedTemp / 100) * 180;
+    const needleEl = document.getElementById('gauge-needle');
+    if (needleEl) {
+        needleEl.style.transform = `translateX(-50%) rotate(${needleAngle}deg)`;
+    }
+    
+    // Update gauge fill arc
+    const gaugeFill = document.getElementById('gauge-fill');
+    if (gaugeFill) {
+        // Calculate arc endpoint based on temperature
+        // Arc goes from (20, 100) to (180, 100) with center at (100, 100), radius 80
+        const angleRad = (Math.PI * clampedTemp) / 100;
+        const endX = 100 - 80 * Math.cos(angleRad);
+        const endY = 100 - 80 * Math.sin(angleRad);
+        
+        // Determine if we need the large arc flag (for temps > 50°C)
+        const largeArc = clampedTemp > 50 ? 1 : 0;
+        
+        // Create the arc path
+        const pathD = `M 20 100 A 80 80 0 ${largeArc} 1 ${endX.toFixed(1)} ${endY.toFixed(1)}`;
+        gaugeFill.setAttribute('d', pathD);
+        
+        // Change color based on temperature
+        let color;
+        if (temp < 30) {
+            color = '#22c55e'; // Green - cool
+        } else if (temp < 50) {
+            color = '#eab308'; // Yellow - warm
+        } else if (temp < 70) {
+            color = '#f97316'; // Orange - hot
+        } else {
+            color = '#ef4444'; // Red - very hot
+        }
+        gaugeFill.style.stroke = color;
+    }
 }

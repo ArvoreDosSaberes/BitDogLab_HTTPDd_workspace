@@ -165,9 +165,16 @@
                             </div>
                             <div class="buzzer-buttons">
                                 <button onclick="playBuzzer()" class="buzzer-play-btn">▶ Tocar</button>
-                                <button onclick="playBuzzer(440, 200)" class="buzzer-preset">Lá</button>
-                                <button onclick="playBuzzer(523, 200)" class="buzzer-preset">Dó</button>
-                                <button onclick="playBuzzer(659, 200)" class="buzzer-preset">Mi</button>
+                            </div>
+                            <div class="buzzer-scale">
+                                <button onclick="playBuzzer(262, 200)" class="buzzer-note">Dó</button>
+                                <button onclick="playBuzzer(294, 200)" class="buzzer-note">Ré</button>
+                                <button onclick="playBuzzer(330, 200)" class="buzzer-note">Mi</button>
+                                <button onclick="playBuzzer(349, 200)" class="buzzer-note">Fá</button>
+                                <button onclick="playBuzzer(392, 200)" class="buzzer-note">Sol</button>
+                                <button onclick="playBuzzer(440, 200)" class="buzzer-note">Lá</button>
+                                <button onclick="playBuzzer(494, 200)" class="buzzer-note">Si</button>
+                                <button onclick="playBuzzer(523, 200)" class="buzzer-note">Dó⁺</button>
                             </div>
                         </div>
                     </div>
@@ -217,6 +224,30 @@
                             <button onclick="waveExpand()" title="Expansão">💫</button>
                             <button onclick="stopAnimation()" title="Parar">⏹️</button>
                         </div>
+                        <div class="presets">
+                            <span>RGB:</span>
+                            <button onclick="effectRainbow()" title="Arco-íris">🌈</button>
+                            <button onclick="effectRainbowSpiral()" title="Espiral Arco-íris">🌀🌈</button>
+                            <button onclick="effectColorChase()" title="Cores Perseguindo">🏃‍♂️</button>
+                            <button onclick="effectBreathing()" title="Respiração">💨</button>
+                            <button onclick="effectFire()" title="Fogo">🔥</button>
+                            <button onclick="effectSparkle()" title="Brilhos">✨</button>
+                        </div>
+                        <div class="presets">
+                            <span>Cores:</span>
+                            <button onclick="effectColorWheel()" title="Roda de Cores">🎡</button>
+                            <button onclick="effectGradient()" title="Gradiente">🎨</button>
+                            <button onclick="effectPulse()" title="Pulso">💓</button>
+                            <button onclick="effectRandomColors()" title="Cores Aleatórias">🎲</button>
+                            <button onclick="effectMatrixRain()" title="Chuva Matrix">💚</button>
+                            <button onclick="effectOceanWaves()" title="Ondas do Oceano">🌊</button>
+                        </div>
+                        <div class="presets">
+                            <span>Especial:</span>
+                            <button onclick="effectLavaLamp()" title="Lâmpada de Lava">🫧</button>
+                            <button onclick="effectPolice()" title="Polícia">🚨</button>
+                            <button onclick="effectDisco()" title="Disco">🪩</button>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -263,6 +294,39 @@
                         </div>
                     </div>
                     <button onclick="sendRGB()">Aplicar</button>
+                </div>
+            </section>
+
+            <!-- Temperature Gauge -->
+            <section class="card temp-section">
+                <h2>🌡️ Temperatura RP2040</h2>
+                <div class="temp-container">
+                    <div class="temp-gauge" id="temp-gauge">
+                        <svg viewBox="0 0 200 120" class="gauge-svg">
+                            <!-- Background arc -->
+                            <path class="gauge-bg" d="M 20 100 A 80 80 0 0 1 180 100" />
+                            <!-- Value arc (will be updated by JS) -->
+                            <path class="gauge-fill" id="gauge-fill" d="M 20 100 A 80 80 0 0 1 20 100" />
+                            <!-- Gauge ticks -->
+                            <g class="gauge-ticks">
+                                <line x1="20" y1="100" x2="30" y2="100" />
+                                <line x1="35" y1="55" x2="43" y2="61" />
+                                <line x1="100" y1="20" x2="100" y2="30" />
+                                <line x1="165" y1="55" x2="157" y2="61" />
+                                <line x1="180" y1="100" x2="170" y2="100" />
+                            </g>
+                            <!-- Tick labels -->
+                            <text x="20" y="115" class="gauge-label">0°</text>
+                            <text x="100" y="15" class="gauge-label" text-anchor="middle">50°</text>
+                            <text x="180" y="115" class="gauge-label" text-anchor="end">100°</text>
+                        </svg>
+                        <div class="gauge-needle" id="gauge-needle"></div>
+                        <div class="gauge-center"></div>
+                    </div>
+                    <div class="temp-value">
+                        <span id="temp-val"><!--#temp--></span>°C
+                    </div>
+                    <p class="temp-hint">Sensor de temperatura interno do chip RP2040</p>
                 </div>
             </section>
         </div>
