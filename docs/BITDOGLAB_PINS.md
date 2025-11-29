@@ -22,6 +22,7 @@ A **BitDogLab** é uma placa educacional baseada no microcontrolador **RP2040** 
 | 26        | Joystick - Eixo X  | Input ADC0    |
 | 27        | Joystick - Eixo Y  | Input ADC1    |
 | 28        | ADC2 (Expansão)   | Input ADC2    |
+| -         | Sensor Temp. Interno | ADC4 (interno)|
 
 ---
 
@@ -156,6 +157,52 @@ Algumas versões da BitDogLab incluem um microfone MEMS para captura de áudio.
 
 ---
 
+## Sensor de Temperatura Interno
+
+O RP2040 possui um sensor de temperatura integrado conectado internamente ao canal ADC4. Este sensor mede a temperatura do próprio chip, útil para monitoramento térmico do sistema.
+
+| Função      | GPIO | Tipo         | Canal ADC | Faixa Típica    |
+| ----------- | ---- | ------------ | --------- | --------------- |
+| Temperatura | -    | Interno      | ADC4      | -20°C a +85°C   |
+
+**Especificações:**
+
+- **Canal ADC:** 4 (interno, sem pino GPIO associado)
+- **Tensão de referência:** 0.706V a 27°C
+- **Coeficiente:** -1.721 mV/°C
+- **Precisão:** ±2°C (típico, sem calibração)
+
+**Fórmula de Conversão:**
+
+```
+Temperatura (°C) = 27 - (V_adc - 0.706) / 0.001721
+```
+
+Onde `V_adc = (raw_adc * 3.3) / 4096`
+
+```c
+// Exemplo de definição e leitura
+#define TEMP_ADC_CHANNEL 4
+
+// Habilitar sensor de temperatura
+adc_set_temp_sensor_enabled(true);
+
+// Leitura da temperatura
+adc_select_input(TEMP_ADC_CHANNEL);
+uint16_t raw = adc_read();
+float voltage = raw * 3.3f / 4096.0f;
+float temperature = 27.0f - (voltage - 0.706f) / 0.001721f;
+```
+
+**Notas:**
+
+- O sensor mede a temperatura do die (chip), não a temperatura ambiente
+- Útil para detectar superaquecimento ou throttling térmico
+- Para maior precisão, recomenda-se calibração com temperatura conhecida
+- A leitura pode variar ~5-10°C acima da temperatura ambiente em operação normal
+
+---
+
 ## Conector de Expansão (14 Pinos)
 
 Conector superior de 14 pinos para expansão e conexão de módulos externos.
@@ -264,6 +311,9 @@ Conector superior de 14 pinos para expansão e conexão de módulos externos.
 #define OLED_SCL_PIN        15
 #define OLED_I2C_INST       i2c1
 #define OLED_I2C_ADDR       0x3C
+
+// ===== Sensor de Temperatura Interno =====
+#define TEMP_ADC_CHANNEL    4
 
 // ===== Expansão =====
 #define EXP_GPIO_4          4
